@@ -1,0 +1,112 @@
+-- Fact Table Script
+SELECT D.SalesOrderDetailID, D.SalesOrderDetailID, D.ProductID, H.TerritoryID, H.CustomerID,H.OrderDate, H.ShipDate
+,D.OrderQty, D.UnitPrice
+FROM AdventureWorks2022.Sales.SalesOrderDetail D
+JOIN AdventureWorks2022.Sales.SalesOrderHeader H 
+ON D.SalesOrderID=H.SalesOrderID
+
+
+-- Product Table Script
+SELECT
+P.ProductID, PS.ProductSubcategoryID,PC.ProductCategoryID, P.Name, P.ProductNumber, PC.Name AS CategoryName, PS.Name AS SubCategoryName
+FROM [Production].Product P
+JOIN [Production].ProductSubcategory PS
+ON P.ProductSubcategoryID=PS.ProductSubcategoryID
+JOIN [Production].ProductCategory PC
+ON PS.ProductCategoryID= PC.ProductCategoryID
+ 
+
+-- Territory Table Script
+SELECT T.TerritoryID, T.Name, T.CountryRegionCode, T.Group 
+FROM Sales.SalesTerritory T
+ 
+-- Customer Table Script
+SELECT
+C.CustomerID,P.PersonType, P.FirstName, P.LastName
+FROM Sales.Customer C
+JOIN Person.Person P
+ON C.PersonID=P.BusinessEntityID
+######
+######
+######
+-- Fact Table
+CREATE TABLE fact_table (
+	fact_id INT NOT NULL  IDENTITY,
+	SalesOrderID INT,
+    SalesOrderDetailID INT,
+    ProductID INT,
+    TerritoryID INT,
+    CustomerID INT,
+	Order_date DATETIME,
+	Ship_date DATETIME,
+    Total DECIMAL(10,2)
+	PRIMARY KEY(fact_id)
+);
+
+-- Product Table
+CREATE TABLE product_dim (
+    Product_dim_id INT NOT NULL,
+    ProductSubcategoryID INT,
+    ProductCategoryID INT,
+    Name VARCHAR(255),
+    ProductNumber VARCHAR(50),
+    CategoryName VARCHAR(255),
+    SubCategoryName VARCHAR(255),
+	PRIMARY KEY(Product_dim_id)
+);
+-- Territory Table
+CREATE TABLE territory_dim (
+    Territory_dim_id INT,
+    Name VARCHAR(255),
+    CountryRegionCode VARCHAR(3),
+    GroupName VARCHAR(50),
+	PRIMARY KEY(Territory_dim_id)
+);
+-- Customer Table
+CREATE TABLE customer_dim (
+    Customer_dim_id INT,
+    PersonType  VARCHAR(50),
+    FirstName  VARCHAR(50),
+    LastName VARCHAR(50),
+	PRIMARY KEY(Customer_dim_id)
+)
+-- Date Table
+CREATE TABLE date_dim (
+    date datetime,
+    year INT,
+    month_name VARCHAR(20),
+    month_number INT,
+    PRIMARY KEY(date)
+);
+-- Date Table Script
+DECLARE @start_date DATE = '2011-05-31 00:00:00.000';  
+DECLARE @end_date DATE = DATEADD(day, 8000, @start_date);  
+
+WHILE @start_date <= @end_date
+BEGIN
+    INSERT INTO date_dim (date, year, month_name, month_number)
+    VALUES (
+        @start_date,
+        YEAR(@start_date),
+        DATENAME(month, @start_date),
+        MONTH(@start_date)
+    );
+    SET @start_date = DATEADD(day, 1, @start_date);
+END;
+
+ 
+ALTER TABLE fact_table
+    ADD FOREIGN KEY (ProductID)
+    REFERENCES product_dim(Product_dim_id)
+
+ALTER TABLE fact_table
+    ADD FOREIGN KEY (TerritoryID)
+    REFERENCES territory_dim(Territory_dim_id)
+
+ALTER TABLE fact_table
+    ADD FOREIGN KEY (CustomerID)
+    REFERENCES customer_dim(Customer_dim_id)
+
+ALTER TABLE fact_table
+    ADD FOREIGN KEY (Order_date)
+    REFERENCES date_dim (date)
