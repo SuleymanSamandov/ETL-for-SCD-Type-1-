@@ -1,4 +1,4 @@
-# ETL-for-SCD-Type-1-
+# ETL-for-SCD-Type-1
 ETL with Pentaho (Slowly Changing Dimension)
 There are 7 different types of data changes in dimension data in the data warehouse. 
 The first type is type 0. Changes are not accepted. And that's why I didn't start with it. 
